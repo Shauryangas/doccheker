@@ -92,6 +92,4 @@ See [backend/requirements.md](./backend/requirements.md) for complete Supabase s
 - Backend developer should refer to requirements.md
 - Environment variables required for connection
 
-## 📄 License
 
-MIT

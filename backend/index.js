@@ -15,6 +15,7 @@ dotenv.config();
 const app = express();
 
 // Middleware
+console.log(process.env.FRONTEND_URL);
 app.use(
   cors({
     origin: function (origin, callback) {
