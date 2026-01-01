@@ -14,11 +14,13 @@ export default function CaseDetail() {
   const [notes, setNotes] = useState([]);
   const [speeches, setSpeeches] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("documents");
+  const [activeTab, setActiveTab] = useState("evidence");
 
-  // Document upload
+  // Evidence upload
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedEvidenceType, setSelectedEvidenceType] = useState("image");
+  const [analyzingId, setAnalyzingId] = useState(null);
 
   // Note form
   const [noteForm, setNoteForm] = useState({ title: "", content: "" });
@@ -62,8 +64,8 @@ export default function CaseDetail() {
     }
   };
 
-  // Document Upload Handler
-  const handleFileUpload = async (e) => {
+  // Evidence Upload Handler
+  const handleFileUpload = async (e, evidenceType) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
@@ -71,13 +73,22 @@ export default function CaseDetail() {
 
     try {
       for (const file of files) {
-        const response = await documentsAPI.uploadDocument(id, file);
+        const response = await documentsAPI.uploadDocument(
+          id,
+          file,
+          evidenceType
+        );
         if (response.success) {
           setDocuments([response.data, ...documents]);
         }
       }
+      alert(
+        `${
+          evidenceType.charAt(0).toUpperCase() + evidenceType.slice(1)
+        } evidence uploaded successfully!`
+      );
     } catch (error) {
-      console.error("Error uploading documents:", error);
+      console.error("Error uploading evidence:", error);
       alert(error.response?.data?.message || "Error uploading file");
     } finally {
       setUploading(false);
@@ -86,14 +97,33 @@ export default function CaseDetail() {
   };
 
   const handleDeleteDocument = async (docId) => {
-    if (!confirm("Are you sure you want to delete this document?")) return;
+    if (!confirm("Are you sure you want to delete this evidence?")) return;
 
     try {
       await documentsAPI.deleteDocument(docId);
       setDocuments(documents.filter((d) => d._id !== docId));
     } catch (error) {
-      console.error("Error deleting document:", error);
-      alert("Error deleting document");
+      console.error("Error deleting evidence:", error);
+      alert("Error deleting evidence");
+    }
+  };
+
+  const handleAnalyzeEvidence = async (docId) => {
+    try {
+      setAnalyzingId(docId);
+      const response = await documentsAPI.analyzeEvidence(docId);
+      if (response.success) {
+        // Update the document in state
+        setDocuments(
+          documents.map((d) => (d._id === docId ? response.data : d))
+        );
+        alert("Evidence analysis initiated!");
+      }
+    } catch (error) {
+      console.error("Error analyzing evidence:", error);
+      alert(error.response?.data?.message || "Error analyzing evidence");
+    } finally {
+      setAnalyzingId(null);
     }
   };
 
@@ -395,7 +425,7 @@ export default function CaseDetail() {
             }}
           >
             {[
-              { id: "documents", label: "Documents", icon: "bi-file-earmark" },
+              { id: "evidence", label: "Evidence", icon: "bi-folder-check" },
               { id: "notes", label: "Notes", icon: "bi-journal-text" },
               { id: "speeches", label: "Speeches", icon: "bi-megaphone" },
             ].map((tab) => (
@@ -431,12 +461,82 @@ export default function CaseDetail() {
         </div>
 
         {/* Tab Content */}
-        {activeTab === "documents" && (
+        {activeTab === "evidence" && (
           <div>
             <div className="card mb-4">
               <h3 className="mb-4">
-                <i className="bi bi-cloud-upload"></i> Upload Documents
+                <i className="bi bi-cloud-upload"></i> Upload Evidence
               </h3>
+
+              {/* Evidence Type Selector */}
+              <div className="mb-4">
+                <label className="form-label" style={{ fontWeight: 600 }}>
+                  Select Evidence Type
+                </label>
+                <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                  {[
+                    {
+                      id: "image",
+                      label: "Image",
+                      icon: "bi-camera",
+                      color: "#3b82f6",
+                    },
+                    {
+                      id: "voice",
+                      label: "Voice/Audio",
+                      icon: "bi-mic",
+                      color: "#8b5cf6",
+                    },
+                    {
+                      id: "video",
+                      label: "Video",
+                      icon: "bi-camera-video",
+                      color: "#ef4444",
+                    },
+                  ].map((type) => (
+                    <button
+                      key={type.id}
+                      onClick={() => setSelectedEvidenceType(type.id)}
+                      style={{
+                        flex: "1 1 150px",
+                        padding: "1rem",
+                        border:
+                          selectedEvidenceType === type.id
+                            ? `2px solid ${type.color}`
+                            : "2px solid var(--border-light)",
+                        borderRadius: "var(--radius-md)",
+                        background:
+                          selectedEvidenceType === type.id
+                            ? `${type.color}15`
+                            : "transparent",
+                        cursor: "pointer",
+                        transition: "all var(--transition-base)",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      <i
+                        className={`bi ${type.icon}`}
+                        style={{
+                          fontSize: "2rem",
+                          color: type.color,
+                          display: "block",
+                          marginBottom: "0.5rem",
+                        }}
+                      ></i>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        {type.label}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Upload Area */}
               <div
                 style={{
                   border: "2px dashed var(--border-medium)",
@@ -447,26 +547,61 @@ export default function CaseDetail() {
                 }}
               >
                 <i
-                  className="bi bi-file-earmark-arrow-up"
+                  className={`bi ${
+                    selectedEvidenceType === "image"
+                      ? "bi-image"
+                      : selectedEvidenceType === "voice"
+                      ? "bi-mic-fill"
+                      : "bi-camera-video-fill"
+                  }`}
                   style={{
                     fontSize: "3rem",
                     color: "var(--primary-600)",
                     marginBottom: "1rem",
                   }}
                 ></i>
-                <p style={{ marginBottom: "1rem" }}>
-                  Upload images, videos, audio files, or documents
+                <p style={{ marginBottom: "0.5rem", fontWeight: 600 }}>
+                  Upload{" "}
+                  {selectedEvidenceType === "image"
+                    ? "Image"
+                    : selectedEvidenceType === "voice"
+                    ? "Voice/Audio"
+                    : "Video"}{" "}
+                  Evidence
+                </p>
+                <p
+                  style={{
+                    marginBottom: "1rem",
+                    fontSize: "0.875rem",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  {selectedEvidenceType === "image" &&
+                    "Accepted: JPG, PNG, GIF, WEBP, HEIC (Max 10MB)"}
+                  {selectedEvidenceType === "voice" &&
+                    "Accepted: MP3, WAV, M4A, OGG, AAC, FLAC (Max 50MB)"}
+                  {selectedEvidenceType === "video" &&
+                    "Accepted: MP4, MOV, AVI, MKV, WEBM (Max 200MB)"}
                 </p>
                 <input
                   type="file"
-                  id="file-upload"
+                  id={`file-upload-${selectedEvidenceType}`}
                   multiple
-                  accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
-                  onChange={handleFileUpload}
+                  accept={
+                    selectedEvidenceType === "image"
+                      ? "image/*"
+                      : selectedEvidenceType === "voice"
+                      ? "audio/*"
+                      : "video/*"
+                  }
+                  onChange={(e) => handleFileUpload(e, selectedEvidenceType)}
                   style={{ display: "none" }}
                   disabled={uploading}
                 />
-                <label htmlFor="file-upload" className="btn btn-primary">
+                <label
+                  htmlFor={`file-upload-${selectedEvidenceType}`}
+                  className="btn btn-primary"
+                >
                   {uploading ? (
                     <>
                       <div
@@ -482,14 +617,19 @@ export default function CaseDetail() {
                   ) : (
                     <>
                       <i className="bi bi-upload"></i>
-                      Choose Files
+                      Choose{" "}
+                      {selectedEvidenceType === "image"
+                        ? "Images"
+                        : selectedEvidenceType === "voice"
+                        ? "Audio Files"
+                        : "Videos"}
                     </>
                   )}
                 </label>
               </div>
             </div>
 
-            {/* Documents List */}
+            {/* Evidence List */}
             <div
               style={{
                 display: "grid",
@@ -498,14 +638,19 @@ export default function CaseDetail() {
               }}
             >
               {documents.map((doc) => (
-                <div key={doc.id} className="card">
+                <div key={doc._id} className="card">
                   <div className="flex items-start justify-between mb-3">
                     <div
                       style={{
                         width: "50px",
                         height: "50px",
                         borderRadius: "var(--radius-md)",
-                        background: "var(--primary-100)",
+                        background:
+                          doc.evidence_type === "image"
+                            ? "#dbeafe"
+                            : doc.evidence_type === "voice"
+                            ? "#ede9fe"
+                            : "#fee2e2",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -513,29 +658,71 @@ export default function CaseDetail() {
                     >
                       <i
                         className={`bi ${
-                          doc.file_type === "image"
-                            ? "bi-image"
-                            : doc.file_type === "video"
-                            ? "bi-camera-video"
-                            : doc.file_type === "audio"
-                            ? "bi-music-note"
-                            : "bi-file-earmark"
+                          doc.evidence_type === "image"
+                            ? "bi-image-fill"
+                            : doc.evidence_type === "video"
+                            ? "bi-camera-video-fill"
+                            : "bi-mic-fill"
                         }`}
                         style={{
                           fontSize: "1.5rem",
-                          color: "var(--primary-600)",
+                          color:
+                            doc.evidence_type === "image"
+                              ? "#3b82f6"
+                              : doc.evidence_type === "voice"
+                              ? "#8b5cf6"
+                              : "#ef4444",
                         }}
                       ></i>
                     </div>
                     <button
-                      onClick={() =>
-                        handleDeleteDocument(doc.id, doc.storage_path)
-                      }
+                      onClick={() => handleDeleteDocument(doc._id)}
                       className="btn btn-danger btn-sm"
                       style={{ padding: "0.25rem 0.5rem" }}
                     >
                       <i className="bi bi-trash"></i>
                     </button>
+                  </div>
+
+                  <div
+                    className="mb-2"
+                    style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}
+                  >
+                    <span
+                      className="badge"
+                      style={{
+                        background:
+                          doc.evidence_type === "image"
+                            ? "#3b82f6"
+                            : doc.evidence_type === "voice"
+                            ? "#8b5cf6"
+                            : "#ef4444",
+                        color: "white",
+                        fontSize: "0.7rem",
+                        padding: "0.25rem 0.5rem",
+                      }}
+                    >
+                      {doc.evidence_type.toUpperCase()}
+                    </span>
+                    <span
+                      className="badge"
+                      style={{
+                        background:
+                          doc.analysis_status === "uploaded"
+                            ? "#fbbf24"
+                            : doc.analysis_status === "metadata_extracted"
+                            ? "#10b981"
+                            : "#3b82f6",
+                        color: "white",
+                        fontSize: "0.7rem",
+                        padding: "0.25rem 0.5rem",
+                      }}
+                    >
+                      {doc.analysis_status === "uploaded" && "📤 Uploaded"}
+                      {doc.analysis_status === "metadata_extracted" &&
+                        "✓ Metadata Extracted"}
+                      {doc.analysis_status === "analyzed" && "🤖 AI Analyzed"}
+                    </span>
                   </div>
 
                   <p
@@ -551,20 +738,181 @@ export default function CaseDetail() {
                     style={{
                       fontSize: "0.75rem",
                       color: "var(--text-secondary)",
-                      marginBottom: "1rem",
+                      marginBottom: "0.75rem",
                     }}
                   >
                     {(doc.file_size / 1024 / 1024).toFixed(2)} MB •{" "}
-                    {new Date(doc.created_at).toLocaleDateString()}
+                    {new Date(doc.createdAt).toLocaleDateString()}
                   </p>
 
-                  <button
-                    onClick={() => handleViewDocument(doc.storage_path)}
-                    className="btn btn-secondary btn-sm"
-                    style={{ width: "100%" }}
+                  {/* Hash Display */}
+                  {doc.file_hash && (
+                    <div style={{ marginBottom: "0.75rem" }}>
+                      <div
+                        style={{
+                          fontSize: "0.7rem",
+                          color: "var(--text-secondary)",
+                          marginBottom: "0.25rem",
+                          fontWeight: 600,
+                        }}
+                      >
+                        SHA-256 Hash:
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "0.25rem",
+                          alignItems: "center",
+                        }}
+                      >
+                        <code
+                          style={{
+                            fontSize: "0.65rem",
+                            background: "var(--bg-secondary)",
+                            padding: "0.25rem 0.5rem",
+                            borderRadius: "var(--radius-sm)",
+                            flex: 1,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {doc.file_hash.substring(0, 16)}...
+                        </code>
+                        <button
+                          onClick={() =>
+                            navigator.clipboard.writeText(doc.file_hash)
+                          }
+                          className="btn btn-secondary btn-sm"
+                          style={{
+                            padding: "0.15rem 0.35rem",
+                            fontSize: "0.7rem",
+                          }}
+                          title="Copy full hash"
+                        >
+                          <i className="bi bi-clipboard"></i>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Metadata Summary */}
+                  {doc.metadataSummary &&
+                    Object.keys(doc.metadataSummary).length > 0 && (
+                      <div
+                        style={{
+                          background: "var(--bg-secondary)",
+                          padding: "0.75rem",
+                          borderRadius: "var(--radius-md)",
+                          marginBottom: "0.75rem",
+                          fontSize: "0.75rem",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontWeight: 600,
+                            marginBottom: "0.5rem",
+                            color: "var(--text-primary)",
+                          }}
+                        >
+                          <i className="bi bi-info-circle"></i> Metadata
+                        </div>
+                        {doc.metadataSummary.camera && (
+                          <div style={{ marginBottom: "0.25rem" }}>
+                            <strong>Camera:</strong>{" "}
+                            {doc.metadataSummary.camera}
+                          </div>
+                        )}
+                        {doc.metadataSummary.dateTaken && (
+                          <div style={{ marginBottom: "0.25rem" }}>
+                            <strong>Date Taken:</strong>{" "}
+                            {new Date(
+                              doc.metadataSummary.dateTaken
+                            ).toLocaleString()}
+                          </div>
+                        )}
+                        {doc.metadataSummary.software && (
+                          <div style={{ marginBottom: "0.25rem" }}>
+                            <strong>Software:</strong>{" "}
+                            {doc.metadataSummary.software}
+                          </div>
+                        )}
+                        {doc.metadataSummary.location && (
+                          <div>
+                            <strong>GPS:</strong>{" "}
+                            {doc.metadataSummary.location.latitude.toFixed(6)},{" "}
+                            {doc.metadataSummary.location.longitude.toFixed(6)}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                  {/* Flags */}
+                  {doc.flags && doc.flags.length > 0 && (
+                    <div style={{ marginBottom: "0.75rem" }}>
+                      {doc.flags.map((flag, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            background:
+                              flag.type === "warning" ? "#fef3c7" : "#dbeafe",
+                            color:
+                              flag.type === "warning" ? "#92400e" : "#1e40af",
+                            padding: "0.5rem",
+                            borderRadius: "var(--radius-sm)",
+                            fontSize: "0.7rem",
+                            marginBottom: "0.25rem",
+                          }}
+                        >
+                          <i className="bi bi-exclamation-triangle"></i>{" "}
+                          {flag.message}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "0.5rem",
+                      flexDirection: "column",
+                    }}
                   >
-                    <i className="bi bi-eye"></i> View
-                  </button>
+                    <button
+                      onClick={() => handleViewDocument(doc.file_url)}
+                      className="btn btn-secondary btn-sm"
+                      style={{ width: "100%" }}
+                    >
+                      <i className="bi bi-eye"></i> View
+                    </button>
+                    {doc.analysis_status !== "analyzed" && (
+                      <button
+                        onClick={() => handleAnalyzeEvidence(doc._id)}
+                        className="btn btn-primary btn-sm"
+                        style={{ width: "100%" }}
+                        disabled={analyzingId === doc._id}
+                      >
+                        {analyzingId === doc._id ? (
+                          <>
+                            <div
+                              className="spinner"
+                              style={{
+                                width: "12px",
+                                height: "12px",
+                                borderWidth: "2px",
+                              }}
+                            ></div>
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <i className="bi bi-stars"></i> Analyse Evidence
+                            with AI
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -572,7 +920,7 @@ export default function CaseDetail() {
             {documents.length === 0 && (
               <div className="card text-center" style={{ padding: "3rem" }}>
                 <i
-                  className="bi bi-inbox"
+                  className="bi bi-folder-x"
                   style={{
                     fontSize: "3rem",
                     color: "var(--text-tertiary)",
@@ -580,7 +928,7 @@ export default function CaseDetail() {
                   }}
                 ></i>
                 <p style={{ color: "var(--text-secondary)" }}>
-                  No documents uploaded yet
+                  No evidence uploaded yet
                 </p>
               </div>
             )}

@@ -24,6 +24,36 @@ const documentSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    evidence_type: {
+      type: String,
+      enum: ["image", "voice", "video"],
+      required: [true, "Evidence type is required"],
+      index: true,
+    },
+    file_type: {
+      type: String,
+      required: true,
+    },
+    file_hash: {
+      type: String,
+      required: true,
+      index: true,
+    },
+    upload_timestamp: {
+      type: Date,
+      default: Date.now,
+      required: true,
+    },
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    analysis_status: {
+      type: String,
+      enum: ["uploaded", "metadata_extracted", "analyzed"],
+      default: "uploaded",
+      index: true,
+    },
     uploaded_by: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

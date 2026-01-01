@@ -125,10 +125,11 @@ export const documentsAPI = {
     return response.data;
   },
 
-  uploadDocument: async (caseId, file) => {
+  uploadDocument: async (caseId, file, evidenceType) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("case_id", caseId);
+    formData.append("evidence_type", evidenceType);
 
     const response = await api.post("/documents", formData, {
       headers: {
@@ -140,6 +141,11 @@ export const documentsAPI = {
 
   deleteDocument: async (id) => {
     const response = await api.delete(`/documents/${id}`);
+    return response.data;
+  },
+
+  analyzeEvidence: async (id) => {
+    const response = await api.post(`/documents/${id}/analyze`);
     return response.data;
   },
 };
