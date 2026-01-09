@@ -195,19 +195,58 @@ router.post("/", upload.single("file"), async (req, res) => {
       });
     }
 
-    const { evidence_type } = req.body;
+    // Get evidence_type from request body
+    let { evidence_type } = req.body;
+
+    // AUTO-DETECT evidence type if not provided (production fix)
+    if (!evidence_type) {
+      console.log(
+        "⚠️ evidence_type not provided, auto-detecting from MIME type:",
+        req.file.mimetype
+      );
+
+      if (req.file.mimetype.startsWith("image/")) {
+        evidence_type = "image";
+      } else if (req.file.mimetype.startsWith("audio/")) {
+        evidence_type = "voice";
+      } else if (req.file.mimetype.startsWith("video/")) {
+        evidence_type = "video";
+      }
+
+      console.log("✓ Auto-detected evidence_type:", evidence_type);
+    }
 
     // Validate evidence type
     if (
       !evidence_type ||
       !["image", "voice", "video"].includes(evidence_type)
     ) {
+      console.error(
+        "❌ Invalid evidence_type:",
+        evidence_type,
+        "| Body:",
+        req.body,
+        "| MIME:",
+        req.file.mimetype
+      );
       fs.unlinkSync(req.file.path);
       return res.status(400).json({
         success: false,
-        message: "Invalid evidence type. Must be image, voice, or video.",
+        message: `Invalid evidence type: "${evidence_type}". Must be image, voice, or video.`,
+        debug: {
+          received_evidence_type: evidence_type,
+          file_mimetype: req.file.mimetype,
+          body_keys: Object.keys(req.body),
+        },
       });
     }
+
+    console.log("📁 Processing evidence upload:", {
+      evidence_type,
+      filename: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+    });
 
     // Validate that file type matches evidence type
     const validation = fileTypeValidations[evidence_type];

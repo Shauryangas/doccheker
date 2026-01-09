@@ -7,6 +7,7 @@ import casesRoutes from "./routes/cases.js";
 import documentsRoutes from "./routes/documents.js";
 import notesRoutes from "./routes/notes.js";
 import speechesRoutes from "./routes/speeches.js";
+import aiAnalysisRoutes from "./routes/ai_analysis.js";
 
 // Load environment variables
 dotenv.config();
@@ -15,7 +16,7 @@ dotenv.config();
 const app = express();
 
 // Middleware
-console.log(process.env.FRONTEND_URL);
+console.log("this isfrontend",process.env.GEMINI_API_KEY);
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -59,6 +60,7 @@ app.use("/api/cases", casesRoutes);
 app.use("/api/documents", documentsRoutes);
 app.use("/api/notes", notesRoutes);
 app.use("/api/speeches", speechesRoutes);
+app.use("/api/ai", aiAnalysisRoutes);
 
 // Serve uploaded files statically
 app.use("/uploads", express.static("uploads"));
@@ -90,8 +92,9 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT ;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
 });
+

@@ -125,7 +125,7 @@ export const documentsAPI = {
     return response.data;
   },
 
-  uploadDocument: async (caseId, file, evidenceType) => {
+  uploadDocument: async (caseId, file, evidenceType, onProgress) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("case_id", caseId);
@@ -134,6 +134,14 @@ export const documentsAPI = {
     const response = await api.post("/documents", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
+      },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          onProgress(percentCompleted);
+        }
       },
     });
     return response.data;
@@ -145,7 +153,7 @@ export const documentsAPI = {
   },
 
   analyzeEvidence: async (id) => {
-    const response = await api.post(`/documents/${id}/analyze`);
+    const response = await api.post(`/ai/analyze/${id}`);
     return response.data;
   },
 };

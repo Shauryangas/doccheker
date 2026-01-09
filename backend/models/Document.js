@@ -50,9 +50,19 @@ const documentSchema = new mongoose.Schema(
     },
     analysis_status: {
       type: String,
-      enum: ["uploaded", "metadata_extracted", "analyzed"],
+      enum: [
+        "uploaded",
+        "metadata_extracted",
+        "analyzing",
+        "analyzed",
+        "analysis_failed",
+      ],
       default: "uploaded",
       index: true,
+    },
+    ai_analysis: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
     },
     uploaded_by: {
       type: mongoose.Schema.Types.ObjectId,

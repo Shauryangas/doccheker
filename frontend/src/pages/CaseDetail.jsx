@@ -34,6 +34,11 @@ export default function CaseDetail() {
   });
   const [editingSpeech, setEditingSpeech] = useState(null);
 
+  // AI Analysis Results
+  const [selectedAnalysis, setSelectedAnalysis] = useState(null);
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+  const [analysisError, setAnalysisError] = useState(null);
+
   useEffect(() => {
     loadCaseData();
   }, [id]);
@@ -70,28 +75,35 @@ export default function CaseDetail() {
     if (files.length === 0) return;
 
     setUploading(true);
+    setUploadProgress(0);
 
     try {
-      for (const file of files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
         const response = await documentsAPI.uploadDocument(
           id,
           file,
-          evidenceType
+          evidenceType,
+          (progress) => {
+            // Update progress for current file
+            const totalProgress = ((i + progress / 100) / files.length) * 100;
+            setUploadProgress(Math.round(totalProgress));
+          }
         );
         if (response.success) {
           setDocuments([response.data, ...documents]);
         }
       }
-      alert(
-        `${
-          evidenceType.charAt(0).toUpperCase() + evidenceType.slice(1)
-        } evidence uploaded successfully!`
-      );
+      const typeLabel = evidenceType
+        ? evidenceType.charAt(0).toUpperCase() + evidenceType.slice(1)
+        : "Evidence";
+      alert(`${typeLabel} uploaded successfully!`);
     } catch (error) {
       console.error("Error uploading evidence:", error);
       alert(error.response?.data?.message || "Error uploading file");
     } finally {
       setUploading(false);
+      setUploadProgress(0);
       e.target.value = ""; // Reset input
     }
   };
@@ -111,17 +123,31 @@ export default function CaseDetail() {
   const handleAnalyzeEvidence = async (docId) => {
     try {
       setAnalyzingId(docId);
+      setAnalysisError(null);
+
       const response = await documentsAPI.analyzeEvidence(docId);
+
       if (response.success) {
-        // Update the document in state
+        // Update the document in state with analysis results
         setDocuments(
-          documents.map((d) => (d._id === docId ? response.data : d))
+          documents.map((d) =>
+            d._id === docId
+              ? { ...d, analysis_status: "analyzed", ai_analysis: response }
+              : d
+          )
         );
-        alert("Evidence analysis initiated!");
+
+        // Show analysis results in modal
+        setSelectedAnalysis(response);
+        setShowAnalysisModal(true);
       }
     } catch (error) {
       console.error("Error analyzing evidence:", error);
-      alert(error.response?.data?.message || "Error analyzing evidence");
+      const errorMsg =
+        error.response?.data?.error ||
+        "Failed to analyze image. Please try again.";
+      setAnalysisError(errorMsg);
+      alert(errorMsg);
     } finally {
       setAnalyzingId(null);
     }
@@ -228,6 +254,46 @@ export default function CaseDetail() {
 
     await db.deleteSpeech(speechId);
     setSpeeches(speeches.filter((s) => s.id !== speechId));
+  };
+
+  // Helper functions for AI Analysis display
+  const getLikelihoodColor = (score) => {
+    if (score < 0.2)
+      return { bg: "#d1fae5", border: "#10b981", text: "#065f46" };
+    if (score < 0.4)
+      return { bg: "#fef3c7", border: "#f59e0b", text: "#92400e" };
+    if (score < 0.6)
+      return { bg: "#fef3c7", border: "#f59e0b", text: "#92400e" };
+    if (score < 0.8)
+      return { bg: "#fed7aa", border: "#f97316", text: "#9a3412" };
+    return { bg: "#fecaca", border: "#ef4444", text: "#991b1b" };
+  };
+
+  const getLikelihoodLabel = (score) => {
+    if (score < 0.2) return "Very Unlikely AI-Generated";
+    if (score < 0.4) return "Unlikely AI-Generated";
+    if (score < 0.6) return "Uncertain";
+    if (score < 0.8) return "Likely AI-Generated";
+    return "Very Likely AI-Generated";
+  };
+
+  const getSeverityColor = (severity) => {
+    if (severity === "low")
+      return { bg: "#fef3c7", border: "#f59e0b", text: "#92400e" };
+    if (severity === "medium")
+      return { bg: "#fed7aa", border: "#f97316", text: "#9a3412" };
+    return { bg: "#fecaca", border: "#ef4444", text: "#991b1b" };
+  };
+
+  const getCategoryIcon = (category) => {
+    const icons = {
+      anatomy: "bi-person",
+      lighting: "bi-sun",
+      texture: "bi-grid-3x3",
+      text: "bi-fonts",
+      object: "bi-box",
+    };
+    return icons[category] || "bi-question-circle";
   };
 
   if (loading) {
@@ -702,8 +768,11 @@ export default function CaseDetail() {
                         padding: "0.25rem 0.5rem",
                       }}
                     >
-                      {doc.evidence_type.toUpperCase()}
+                      {doc.evidence_type
+                        ? doc.evidence_type.toUpperCase()
+                        : "UNKNOWN"}
                     </span>
+
                     <span
                       className="badge"
                       style={{
@@ -712,7 +781,7 @@ export default function CaseDetail() {
                             ? "#fbbf24"
                             : doc.analysis_status === "metadata_extracted"
                             ? "#10b981"
-                            : "#3b82f6",
+                            : "#367ef1ff",
                         color: "white",
                         fontSize: "0.7rem",
                         padding: "0.25rem 0.5rem",
@@ -912,6 +981,24 @@ export default function CaseDetail() {
                         )}
                       </button>
                     )}
+
+                    {/* View Analysis Button for Analyzed Images */}
+                    {doc.evidence_type === "image" &&
+                      doc.analysis_status === "analyzed" && (
+                        <button
+                          onClick={() => {
+                            setSelectedAnalysis(
+                              doc.ai_analysis?.vision_artifact ||
+                                doc.ai_analysis
+                            );
+                            setShowAnalysisModal(true);
+                          }}
+                          className="btn btn-success btn-sm"
+                          style={{ width: "100%" }}
+                        >
+                          <i className="bi bi-eye-fill"></i> View AI Analysis
+                        </button>
+                      )}
                   </div>
                 </div>
               ))}
@@ -932,6 +1019,240 @@ export default function CaseDetail() {
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* AI Analysis Results Modal */}
+        {showAnalysisModal && selectedAnalysis && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0, 0, 0, 0.7)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+              padding: "2rem",
+            }}
+            onClick={() => setShowAnalysisModal(false)}
+          >
+            <div
+              className="card"
+              style={{
+                maxWidth: "800px",
+                width: "100%",
+                maxHeight: "90vh",
+                overflow: "auto",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2>🔍 AI Forensic Analysis Report</h2>
+                <button
+                  onClick={() => setShowAnalysisModal(false)}
+                  className="btn btn-secondary btn-sm"
+                >
+                  <i className="bi bi-x-lg"></i> Close
+                </button>
+              </div>
+
+              {/* AI Likelihood Score */}
+              <div
+                style={{
+                  padding: "1.5rem",
+                  background: getLikelihoodColor(selectedAnalysis.ai_likelihood)
+                    .bg,
+                  borderRadius: "var(--radius-md)",
+                  marginBottom: "1.5rem",
+                  border: `2px solid ${
+                    getLikelihoodColor(selectedAnalysis.ai_likelihood).border
+                  }`,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    marginBottom: "0.5rem",
+                    opacity: 0.8,
+                  }}
+                >
+                  AI Generation Likelihood
+                </div>
+                <div
+                  style={{
+                    fontSize: "2rem",
+                    fontWeight: 700,
+                    color: getLikelihoodColor(selectedAnalysis.ai_likelihood)
+                      .text,
+                  }}
+                >
+                  {(selectedAnalysis.ai_likelihood * 100).toFixed(1)}%
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    marginTop: "0.25rem",
+                  }}
+                >
+                  {getLikelihoodLabel(selectedAnalysis.ai_likelihood)}
+                </div>
+              </div>
+
+              {/* Findings */}
+              <div>
+                <h3 className="mb-3">
+                  Visual Artifacts Detected ({selectedAnalysis.findings.length})
+                </h3>
+
+                {selectedAnalysis.findings.length === 0 ? (
+                  <div
+                    style={{
+                      padding: "2rem",
+                      textAlign: "center",
+                      background: "var(--bg-secondary)",
+                      borderRadius: "var(--radius-md)",
+                    }}
+                  >
+                    <i
+                      className="bi bi-check-circle"
+                      style={{ fontSize: "3rem", color: "#10b981" }}
+                    ></i>
+                    <p style={{ marginTop: "1rem", fontWeight: 600 }}>
+                      No visual artifacts detected
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
+                      The image appears consistent with no obvious AI-generated
+                      anomalies
+                    </p>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "1rem",
+                    }}
+                  >
+                    {selectedAnalysis.findings.map((finding, idx) => (
+                      <div
+                        key={idx}
+                        className="card"
+                        style={{
+                          background: "var(--bg-secondary)",
+                          border: `1px solid ${
+                            getSeverityColor(finding.severity).border
+                          }`,
+                          borderLeftWidth: "4px",
+                        }}
+                      >
+                        <div className="flex items-start gap-md mb-2">
+                          <div
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              borderRadius: "50%",
+                              background: getSeverityColor(finding.severity).bg,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <i
+                              className={`bi ${getCategoryIcon(
+                                finding.category
+                              )}`}
+                              style={{
+                                fontSize: "1.25rem",
+                                color: getSeverityColor(finding.severity).text,
+                              }}
+                            ></i>
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div className="flex items-center gap-sm mb-1">
+                              <span
+                                className="badge"
+                                style={{
+                                  background: "#3b82f6",
+                                  color: "white",
+                                  fontSize: "0.7rem",
+                                }}
+                              >
+                                {finding.category.toUpperCase()}
+                              </span>
+                              <span
+                                className="badge"
+                                style={{
+                                  background: getSeverityColor(finding.severity)
+                                    .bg,
+                                  color: getSeverityColor(finding.severity)
+                                    .text,
+                                  fontSize: "0.7rem",
+                                }}
+                              >
+                                {finding.severity.toUpperCase()}
+                              </span>
+                            </div>
+                            <p
+                              style={{
+                                fontWeight: 600,
+                                marginBottom: "0.5rem",
+                              }}
+                            >
+                              {finding.issue
+                                .replace(/_/g, " ")
+                                .replace(/\b\w/g, (l) => l.toUpperCase())}
+                            </p>
+                            <p
+                              style={{
+                                fontSize: "0.875rem",
+                                margin: 0,
+                                color: "var(--text-secondary)",
+                              }}
+                            >
+                              {finding.description}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Analysis Metadata */}
+              <div
+                style={{
+                  marginTop: "1.5rem",
+                  padding: "1rem",
+                  background: "var(--bg-secondary)",
+                  borderRadius: "var(--radius-md)",
+                  fontSize: "0.75rem",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <span>
+                    <i className="bi bi-robot"></i> Analyzed by: Vision Artifact
+                    Agent (Gemini 1.5 Pro)
+                  </span>
+                  <span>
+                    <i className="bi bi-clock"></i>{" "}
+                    {new Date(selectedAnalysis.analyzed_at).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
