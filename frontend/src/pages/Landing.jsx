@@ -166,9 +166,9 @@ export default function Landing() {
                 animationDelay: "0.1s",
               }}
             >
-              Manage Your Legal Cases
+              AI-Powered Forensic Analysis
               <br />
-              <span className="gradient-text">Effortlessly & Securely</span>
+              <span className="gradient-text">For Legal Professionals</span>
             </h1>
 
             {/* Subheadline */}
@@ -183,9 +183,9 @@ export default function Landing() {
                 animationDelay: "0.2s",
               }}
             >
-              The all-in-one platform for lawyers to organize cases, store
-              documents securely, take notes, and prepare speeches. Everything
-              you need in one place.
+              Detect AI-generated content, deepfakes, and manipulated evidence
+              with advanced AI forensic analysis. Generate court-admissible
+              reports for legal proceedings.
             </p>
 
             {/* CTA Buttons */}
@@ -233,25 +233,25 @@ export default function Landing() {
                   style={{ color: "var(--success-500)" }}
                 ></i>
                 <span style={{ color: "var(--text-secondary)" }}>
-                  Bank-level Security
+                  98% AI Detection Accuracy
                 </span>
               </div>
               <div className="flex items-center gap-sm">
                 <i
-                  className="bi bi-clock"
+                  className="bi bi-file-earmark-text"
                   style={{ color: "var(--success-500)" }}
                 ></i>
                 <span style={{ color: "var(--text-secondary)" }}>
-                  24/7 Access
+                  Court-Admissible Reports
                 </span>
               </div>
               <div className="flex items-center gap-sm">
                 <i
-                  className="bi bi-cloud-check"
+                  className="bi bi-fingerprint"
                   style={{ color: "var(--success-500)" }}
                 ></i>
                 <span style={{ color: "var(--text-secondary)" }}>
-                  Cloud Storage
+                  SHA-256 Chain of Custody
                 </span>
               </div>
             </div>
@@ -292,40 +292,40 @@ export default function Landing() {
           >
             {[
               {
+                icon: "bi-stars",
+                title: "AI Detection Engine",
+                description:
+                  "Dual-layer AI detection with SightEngine and Google Gemini Vision. Identifies AI-generated images, deepfakes, and digital manipulation with 98% accuracy.",
+              },
+              {
+                icon: "bi-file-earmark-pdf",
+                title: "Court-Admissible Reports",
+                description:
+                  "Generate expert forensic reports in PDF format following FRE 702 and Daubert Standard. Includes SHA-256 hash for chain of custody.",
+              },
+              {
+                icon: "bi-eye",
+                title: "Visual Forensics",
+                description:
+                  "Detect anatomical inconsistencies, lighting artifacts, texture abnormalities, and AI generation patterns in images and videos.",
+              },
+              {
                 icon: "bi-folder-check",
                 title: "Case Management",
                 description:
-                  "Organize and track all your cases in one centralized dashboard. Never lose track of important deadlines or client information.",
+                  "Organize evidence, documents, and cases in one secure platform. Track analysis history and access reports anytime.",
               },
               {
-                icon: "bi-cloud-upload",
-                title: "Secure Document Storage",
+                icon: "bi-fingerprint",
+                title: "Digital Fingerprinting",
                 description:
-                  "Upload and manage all case documents with military-grade encryption. Access files from anywhere, anytime.",
-              },
-              {
-                icon: "bi-journal-text",
-                title: "Smart Note Taking",
-                description:
-                  "Create detailed case notes with rich formatting. Search and organize notes effortlessly.",
-              },
-              {
-                icon: "bi-megaphone",
-                title: "Speech Preparation",
-                description:
-                  "Write and organize opening statements, closing arguments, and legal speeches all in one place.",
-              },
-              {
-                icon: "bi-search",
-                title: "Powerful Search",
-                description:
-                  "Find any case, document, or note instantly with advanced search and filtering capabilities.",
+                  "Cryptographic SHA-256 hashing ensures evidence integrity. Prove no tampering occurred after analysis for legal proceedings.",
               },
               {
                 icon: "bi-shield-lock",
                 title: "Enterprise Security",
                 description:
-                  "Your data is protected with bank-level encryption and regular security audits.",
+                  "Bank-level encryption, EXIF metadata extraction, and secure cloud storage protect sensitive legal evidence.",
               },
             ].map((feature, index) => (
               <div
@@ -406,24 +406,24 @@ export default function Landing() {
             {[
               {
                 step: "01",
-                title: "Create Account",
+                title: "Upload Evidence",
                 description:
-                  "Sign up with your email in seconds. No credit card required.",
-                icon: "bi-person-plus-fill",
+                  "Upload images, videos, or audio files for AI forensic analysis. Supports all major formats.",
+                icon: "bi-cloud-upload-fill",
               },
               {
                 step: "02",
-                title: "Add Cases",
+                title: "AI Analysis",
                 description:
-                  "Import your cases and upload documents to get organized.",
-                icon: "bi-folder-plus",
+                  "Our dual-layer AI system analyzes evidence for manipulation, deepfakes, and AI generation.",
+                icon: "bi-stars",
               },
               {
                 step: "03",
-                title: "Work Smarter",
+                title: "Download Report",
                 description:
-                  "Access everything from anywhere and boost your productivity.",
-                icon: "bi-lightning-charge-fill",
+                  "Get court-admissible PDF reports with forensic findings, digital fingerprint, and expert statement.",
+                icon: "bi-file-earmark-pdf-fill",
               },
             ].map((step, index) => (
               <div
@@ -502,10 +502,10 @@ export default function Landing() {
             }}
           >
             {[
-              { value: "99.9%", label: "Uptime" },
-              { value: "256-bit", label: "Encryption" },
-              { value: "Unlimited", label: "Storage" },
-              { value: "24/7", label: "Support" },
+              { value: "98%", label: "AI Detection Accuracy" },
+              { value: "SHA-256", label: "Encryption Hash" },
+              { value: "4 AI Models", label: "Detection Engines" },
+              { value: "PDF Report", label: "Court-Admissible" },
             ].map((stat, index) => (
               <div
                 key={index}

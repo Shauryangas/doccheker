@@ -115,17 +115,19 @@ function addExecutiveSummary(pdf, document) {
   pdf.moveDown(0.3);
 
   pdf.fontSize(11).font("Helvetica");
+  const likelihoodPercent = (aiLikelihood * 100).toFixed(1);
   pdf.text(
-    `It is my professional opinion, with a high degree of scientific certainty, that the analyzed evidence "${
-      document.file_name
-    }" shows a ${aiLikelihood.toFixed(1)}% likelihood of AI generation.`,
+    `It is my professional opinion, with a high degree of scientific certainty, that the analyzed evidence "${document.file_name}" shows a ${likelihoodPercent} percent likelihood of AI generation.`,
+    495,
+    undefined,
     { align: "justify" }
   );
 
   pdf.moveDown();
   pdf.fontSize(11).font("Helvetica-Bold");
   pdf.text(`Verdict: ${verdict}`);
-  pdf.text(`Overall Confidence: ${confidence.toFixed(1)}%`);
+  const confidencePercent = confidence.toFixed(1);
+  pdf.text(`Overall Confidence: ${confidencePercent} percent`);
 
   pdf.moveDown();
   pdf.fontSize(10).font("Helvetica");
@@ -133,22 +135,27 @@ function addExecutiveSummary(pdf, document) {
   pdf.moveDown(0.3);
 
   if (sightEngineVerdict && sightEngineVerdict.verdict !== "unavailable") {
+    const seConfidence = sightEngineVerdict.confidence;
+    const seAiScore = sightEngineVerdict.aiScore;
+    const seRealScore = sightEngineVerdict.realScore;
+
     pdf.text(
-      `• SightEngine AI Detection: ${sightEngineVerdict.verdict} (${sightEngineVerdict.confidence}% confidence)`
+      `- SightEngine AI Detection: ${sightEngineVerdict.verdict} (${seConfidence} percent confidence)`
     );
-    pdf.text(`  - AI Generated Probability: ${sightEngineVerdict.aiScore}%`);
-    pdf.text(`  - Real Photo Probability: ${sightEngineVerdict.realScore}%`);
+    pdf.text(`  AI Generated Probability: ${seAiScore} percent`);
+    pdf.text(`  Real Photo Probability: ${seRealScore} percent`);
   }
 
   pdf.moveDown(0.5);
   pdf.text(
-    `• Visual Artifact Analysis: ${
+    `- Visual Artifact Analysis: ${
       analysis?.findings?.length || 0
     } issues detected`
   );
-  pdf.text(`• Combined AI Likelihood: ${(aiLikelihood * 100).toFixed(1)}%`);
+  const combinedPercent = (aiLikelihood * 100).toFixed(1);
+  pdf.text(`- Combined AI Likelihood: ${combinedPercent} percent`);
 
-  pdf.addPage();
+  checkPageBreak(pdf, 100);
 }
 
 /**
@@ -158,42 +165,51 @@ function addMethodology(pdf) {
   addSectionHeader(pdf, "METHODOLOGY");
 
   pdf.fontSize(10).font("Helvetica");
-  pdf.text("This analysis employed a dual-layer AI detection system:", {
-    align: "justify",
-  });
+  pdf.text("This analysis employed a dual-layer AI detection system:", 495);
   pdf.moveDown();
 
   pdf.fontSize(10).font("Helvetica-Bold");
   pdf.text("1. SightEngine AI Detection");
   pdf.font("Helvetica");
   pdf.text(
-    "   • Specialized machine learning model for AI-generated image detection"
+    "   - Specialized machine learning model for AI-generated image detection",
+    495
   );
-  pdf.text("   • Trained on millions of AI-generated and authentic images");
-  pdf.text("   • Analyzes pixel-level patterns and mathematical signatures");
   pdf.text(
-    "   • Detects images from major AI models (DALL-E, Stable Diffusion, MidJourney, GPT-4o)"
+    "   - Trained on millions of AI-generated and authentic images",
+    495
+  );
+  pdf.text(
+    "   - Analyzes pixel-level patterns and mathematical signatures",
+    495
+  );
+  pdf.text(
+    "   - Detects images from major AI models (DALL-E, Stable Diffusion, MidJourney, GPT-4o)",
+    495
   );
 
   pdf.moveDown();
   pdf.fontSize(10).font("Helvetica-Bold");
   pdf.text("2. Google Gemini Vision AI");
   pdf.font("Helvetica");
-  pdf.text("   • Advanced multi-modal visual analysis");
-  pdf.text("   • Detects anatomical inconsistencies and impossible geometry");
-  pdf.text("   • Identifies texture artifacts and unnatural patterns");
-  pdf.text("   • Evaluates lighting, shadow, and perspective consistency");
-  pdf.text("   • Analyzes text coherence and object plausibility");
+  pdf.text("   - Advanced multi-modal visual analysis", 495);
+  pdf.text(
+    "   - Detects anatomical inconsistencies and impossible geometry",
+    495
+  );
+  pdf.text("   - Identifies texture artifacts and unnatural patterns", 495);
+  pdf.text("   - Evaluates lighting, shadow, and perspective consistency", 495);
+  pdf.text("   - Analyzes text coherence and object plausibility", 495);
 
   pdf.moveDown();
   pdf.fontSize(10).font("Helvetica-Bold");
   pdf.text("Legal Standards Compliance:");
   pdf.font("Helvetica");
-  pdf.text("   • Federal Rules of Evidence (FRE 702) - Expert Testimony");
-  pdf.text("   • Daubert Standard for scientific evidence admissibility");
-  pdf.text("   • Chain of custody maintained via cryptographic hash");
+  pdf.text("   - Federal Rules of Evidence (FRE 702) - Expert Testimony", 495);
+  pdf.text("   - Daubert Standard for scientific evidence admissibility", 495);
+  pdf.text("   - Chain of custody maintained via cryptographic hash", 495);
 
-  pdf.addPage();
+  checkPageBreak(pdf, 100);
 }
 
 /**
@@ -206,7 +222,7 @@ function addTechnicalFindings(pdf, document) {
 
   if (findings.length === 0) {
     pdf.fontSize(10).text("No significant findings detected.");
-    pdf.addPage();
+    checkPageBreak(pdf, 100);
     return;
   }
 
@@ -221,9 +237,9 @@ function addTechnicalFindings(pdf, document) {
   }, {});
 
   pdf.text(`Severity Breakdown:`);
-  pdf.text(`  • High: ${severityCounts.high || 0}`);
-  pdf.text(`  • Medium: ${severityCounts.medium || 0}`);
-  pdf.text(`  • Low: ${severityCounts.low || 0}`);
+  pdf.text(`  - High: ${severityCounts.high || 0}`);
+  pdf.text(`  - Medium: ${severityCounts.medium || 0}`);
+  pdf.text(`  - Low: ${severityCounts.low || 0}`);
   pdf.moveDown(1.5);
 
   // List findings
@@ -232,22 +248,19 @@ function addTechnicalFindings(pdf, document) {
   pdf.moveDown(0.5);
 
   findings.forEach((finding, index) => {
+    checkPageBreak(pdf, 120); // Check before each finding
+
     pdf.fontSize(10).font("Helvetica-Bold");
     pdf.text(`${index + 1}. ${finding.issue.replace(/_/g, " ").toUpperCase()}`);
 
     pdf.fontSize(9).font("Helvetica");
     pdf.text(`   Category: ${finding.category}`);
     pdf.text(`   Severity: ${finding.severity.toUpperCase()}`);
-    pdf.text(`   Description: ${finding.description}`, { align: "justify" });
+    pdf.text(`   Description: ${finding.description}`, 495);
     pdf.moveDown(0.8);
-
-    // Add page break if needed
-    if (pdf.y > 700) {
-      pdf.addPage();
-    }
   });
 
-  pdf.addPage();
+  checkPageBreak(pdf, 100);
 }
 
 /**
@@ -260,11 +273,11 @@ function addDigitalFingerprint(pdf, document) {
   pdf.text("File Information:");
   pdf.moveDown(0.5);
 
-  pdf.text(`• Original Filename: ${document.file_name}`);
-  pdf.text(`• File Type: ${document.evidence_type}`);
-  pdf.text(`• MIME Type: ${document.file_path?.split(".").pop() || "N/A"}`);
+  pdf.text(`- Original Filename: ${document.file_name}`);
+  pdf.text(`- File Type: ${document.evidence_type}`);
+  pdf.text(`- MIME Type: ${document.file_path?.split(".").pop() || "N/A"}`);
   pdf.text(
-    `• Upload Date: ${
+    `- Upload Date: ${
       document.created_at
         ? new Date(document.created_at).toLocaleString()
         : "N/A"
@@ -280,16 +293,18 @@ function addDigitalFingerprint(pdf, document) {
   const hash = document.file_hash || calculateFileHash(document.file_path);
 
   pdf.fontSize(9).font("Courier");
-  pdf.text(hash, { width: 500 });
+  pdf.text(hash, 495);
 
   pdf.moveDown(1);
   pdf.fontSize(9).font("Helvetica");
   pdf.text(
     "This cryptographic hash ensures file integrity. Any modification to the file, even changing a single byte, will result in a completely different hash value. This proves the evidence has not been tampered with since analysis.",
+    495,
+    undefined,
     { align: "justify" }
   );
 
-  pdf.addPage();
+  checkPageBreak(pdf, 100);
 }
 
 /**
@@ -303,24 +318,28 @@ function addMetadataAnalysis(pdf, document) {
 
   if (!hasMetadata) {
     pdf.fontSize(10).font("Helvetica-Bold").fillColor("red");
-    pdf.text("⚠️ ALERT: NO EXIF METADATA PRESENT");
+    pdf.text("ALERT: NO EXIF METADATA PRESENT");
     pdf.fillColor("black");
     pdf.moveDown(0.5);
 
     pdf.fontSize(10).font("Helvetica");
     pdf.text(
       "This image contains no EXIF metadata. This is a significant indicator of potential AI generation or deliberate metadata removal. Authentic photographs from cameras and smartphones typically contain:",
+      495,
+      undefined,
       { align: "justify" }
     );
     pdf.moveDown(0.3);
-    pdf.text("• Camera make and model");
-    pdf.text("• Date and time of capture");
-    pdf.text("• Camera settings (ISO, aperture, shutter speed)");
-    pdf.text("• GPS location (if enabled)");
+    pdf.text("- Camera make and model");
+    pdf.text("- Date and time of capture");
+    pdf.text("- Camera settings (ISO, aperture, shutter speed)");
+    pdf.text("- GPS location (if enabled)");
 
     pdf.moveDown(0.5);
     pdf.text(
       "The absence of this data suggests the image may have been generated by AI software or processed through tools that strip metadata.",
+      495,
+      undefined,
       { align: "justify" }
     );
   } else {
@@ -330,24 +349,22 @@ function addMetadataAnalysis(pdf, document) {
 
     if (metadata.Make || metadata.Model) {
       pdf.text(
-        `• Camera: ${metadata.Make || ""} ${metadata.Model || ""}`.trim()
+        `- Camera: ${metadata.Make || ""} ${metadata.Model || ""}`.trim()
       );
     }
     if (metadata.DateTimeOriginal) {
-      pdf.text(`• Date Taken: ${metadata.DateTimeOriginal}`);
+      pdf.text(`- Date Taken: ${metadata.DateTimeOriginal}`);
     }
     if (metadata.Software) {
-      pdf.text(`• Software: ${metadata.Software}`);
-      pdf
-        .fontSize(9)
-        .text("  ⚠️ Note: Software field indicates post-processing");
+      pdf.text(`- Software: ${metadata.Software}`);
+      pdf.fontSize(9).text("  Note: Software field indicates post-processing");
     }
     if (metadata.GPSLatitude && metadata.GPSLongitude) {
-      pdf.text(`• GPS: ${metadata.GPSLatitude}, ${metadata.GPSLongitude}`);
+      pdf.text(`- GPS: ${metadata.GPSLatitude}, ${metadata.GPSLongitude}`);
     }
   }
 
-  pdf.addPage();
+  checkPageBreak(pdf, 100);
 }
 
 /**
@@ -357,7 +374,7 @@ function addStatementOfTruth(pdf, caseInfo) {
   addSectionHeader(pdf, "EXPERT DECLARATION");
 
   pdf.fontSize(10).font("Helvetica");
-  pdf.text("I confirm that:", { align: "justify" });
+  pdf.text("I confirm that:");
   pdf.moveDown(0.5);
 
   pdf.text("1. The facts stated in this report are within my own knowledge");
@@ -385,7 +402,7 @@ function addStatementOfTruth(pdf, caseInfo) {
     pdf.fontSize(9).font("Helvetica-Bold");
     pdf.text("Additional Notes:");
     pdf.font("Helvetica");
-    pdf.text(caseInfo.additionalNotes, { align: "justify" });
+    pdf.text(caseInfo.additionalNotes, 495, undefined, { align: "justify" });
   }
 }
 
@@ -399,6 +416,17 @@ function addSectionHeader(pdf, title) {
   pdf.fontSize(10).font("Helvetica");
   pdf.text("━".repeat(80));
   pdf.moveDown(0.8);
+}
+
+/**
+ * Helper: Check if page break is needed
+ */
+function checkPageBreak(pdf, spaceNeeded = 100) {
+  if (pdf.y > 700 - spaceNeeded) {
+    pdf.addPage();
+  } else {
+    pdf.moveDown(1.5);
+  }
 }
 
 /**
