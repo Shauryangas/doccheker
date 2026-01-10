@@ -1,28 +1,28 @@
 /**
- * Build dynamic vision analysis prompt with Hive AI forensic data and metadata
- * @param {Object} hiveResults - Raw Hive AI analysis results
+ * Build dynamic vision analysis prompt with SightEngine AI detection data and metadata
+ * @param {Object} sightEngineResults - Raw SightEngine API response
  * @param {Object} metadata - Image EXIF metadata
  * @returns {string} Complete prompt for Gemini
  */
-export const buildVisionPrompt = (hiveResults, metadata) => {
+export const buildVisionPrompt = (sightEngineResults, metadata) => {
   const basePrompt = `You are a Senior Computer Vision Forensic Analyst.
 
 IMPORTANT: You are the FINAL ANALYST. Your job is to synthesize technical data with visual analysis.
 
-${buildHiveContext(hiveResults)}
+${buildSightEngineContext(sightEngineResults)}
 
 ${buildMetadataContext(metadata)}
 
 Your Task:
-- Review the Hive Forensics technical data as your SOURCE OF TRUTH
+- Review the SightEngine AI Detection technical data as your SOURCE OF TRUTH
 - Perform your own visual analysis to find supporting/contradicting evidence
 - Provide a final comprehensive verdict combining both analyses
 
 Rules:
-- Use Hive's technical verdict as the primary indicator
-- Report visual inconsistencies that support or contradict Hive's findings
-- If Hive says AI-generated, find visual artifacts that explain WHY
-- If Hive says real, note any concerning visual elements
+- Use SightEngine's technical verdict as the primary indicator
+- Report visual inconsistencies that support or contradict SightEngine's findings
+- If SightEngine says AI-generated, find visual artifacts that explain WHY
+- If SightEngine says real, note any concerning visual elements
 - Be conservative. If unsure, defer to technical data.
 - Output ONLY valid JSON.
 
@@ -52,34 +52,30 @@ Focus on:
 };
 
 /**
- * Build Hive AI forensic context for prompt
- * @param {Object} hiveResults - Raw Hive API response
- * @returns {string} Formatted Hive context
+ * Build SightEngine AI detection context for prompt
+ * @param {Object} sightEngineResults - Raw SightEngine API response
+ * @returns {string} Formatted SightEngine context
  */
-function buildHiveContext(hiveResults) {
-  if (!hiveResults || !hiveResults.status) {
-    return `\n⚠️ HIVE FORENSICS: Technical analysis unavailable. Proceed with visual analysis only.`;
+function buildSightEngineContext(sightEngineResults) {
+  if (!sightEngineResults || sightEngineResults.status !== "success") {
+    return `\n⚠️ SIGHTENGINE AI DETECTION: Technical analysis unavailable. Proceed with visual analysis only.`;
   }
 
-  const output = hiveResults.status[0]?.response?.output?.[0];
-  if (!output) {
-    return `\n⚠️ HIVE FORENSICS: No classification data available.`;
+  // SightEngine returns data in 'type' field
+  const typeData = sightEngineResults.type;
+  if (!typeData || typeData.ai_generated === undefined) {
+    return `\n⚠️ SIGHTENGINE AI DETECTION: No classification data available.`;
   }
 
-  const classes = output.classes || [];
-  const aiGenerated = classes.find((c) => c.class === "ai_generated");
-  const real = classes.find((c) => c.class === "real");
-
-  const aiScore = (aiGenerated?.score || 0) * 100;
-  const realScore = (real?.score || 0) * 100;
-
-  const verdict = aiScore > realScore ? "AI-GENERATED" : "REAL PHOTO";
+  const aiScore = (typeData.ai_generated || 0) * 100;
+  const realScore = 100 - aiScore;
+  const verdict = aiScore > 50 ? "AI-GENERATED" : "REAL PHOTO";
   const confidence = Math.max(aiScore, realScore);
 
   return `
-🔬 HIVE FORENSICS TECHNICAL ANALYSIS:
+🔬 SIGHTENGINE AI DETECTION TECHNICAL ANALYSIS:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✓ Model: ai_generated_image_detection (Specialized AI Detector)
+✓ Model: AI-Generated Image Detection (Specialized AI Detector)
 ✓ Verdict: ${verdict}
 ✓ Confidence: ${confidence.toFixed(1)}%
 

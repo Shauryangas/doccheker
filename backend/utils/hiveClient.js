@@ -7,6 +7,8 @@ console.log("hive", process.env.HIVE_API_KEY);
 const hiveClient = new OpenAI({
   baseURL: "https://api.thehive.ai/api/v3/",
   apiKey: process.env.HIVE_API_KEY,
+  timeout: 120000, // 2 minutes - Hive VLM can take longer for complex analysis
+  maxRetries: 2, // Retry on network errors
 });
 
 /**

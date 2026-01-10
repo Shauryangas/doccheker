@@ -8,6 +8,7 @@ import documentsRoutes from "./routes/documents.js";
 import notesRoutes from "./routes/notes.js";
 import speechesRoutes from "./routes/speeches.js";
 import aiAnalysisRoutes from "./routes/ai_analysis.js";
+import reportsRoutes from "./routes/reports.js";
 
 // Environment variables are preloaded via -r dotenv/config in package.json
 
@@ -60,6 +61,7 @@ app.use("/api/documents", documentsRoutes);
 app.use("/api/notes", notesRoutes);
 app.use("/api/speeches", speechesRoutes);
 app.use("/api/ai", aiAnalysisRoutes);
+app.use("/api/reports", reportsRoutes);
 
 // Serve uploaded files statically
 app.use("/uploads", express.static("uploads"));

@@ -70,14 +70,14 @@ router.post("/analyze/:documentId", async (req, res) => {
     // Calculate AI likelihood score
     const aiLikelihood = calculateVisionScore(data.findings);
 
-    // Update document with analysis results including Hive verdict
+    // Update document with analysis results including SightEngine verdict
     document.analysis_status = "analyzed";
     document.ai_analysis = {
       vision_artifact: {
         findings: data.findings,
         ai_likelihood: aiLikelihood,
         analyzed_at: new Date(),
-        hive_verdict: data.hive_analysis || null, // Store Hive scores and verdict
+        sightengine_verdict: data.sightengine_analysis || null, // Store SightEngine scores and verdict
       },
     };
     await document.save();
@@ -85,9 +85,9 @@ router.post("/analyze/:documentId", async (req, res) => {
     console.log(`✅ Analysis complete for ${document.file_name}`);
     console.log(`📊 AI Likelihood: ${aiLikelihood}`);
     console.log(`🔍 Findings: ${data.findings.length} issues detected`);
-    if (data.hive_analysis) {
+    if (data.sightengine_analysis) {
       console.log(
-        `🔬 Hive Conclusion: ${data.hive_analysis.verdict} (${data.hive_analysis.confidence}%)`
+        `🔬 SightEngine Conclusion: ${data.sightengine_analysis.verdict} (${data.sightengine_analysis.confidence}%)`
       );
     }
 
@@ -97,7 +97,7 @@ router.post("/analyze/:documentId", async (req, res) => {
       document_id: documentId,
       findings: data.findings,
       ai_likelihood: aiLikelihood,
-      hive_verdict: data.hive_analysis, // Include Hive data in response
+      sightengine_verdict: data.sightengine_analysis, // Include SightEngine data in response
       analyzed_at: new Date(),
     });
   } catch (err) {

@@ -28,6 +28,7 @@
     "mongoose": "^8.0.3",
     "multer": "^2.0.2",
     "openai": "^6.16.0",
+    "pdfkit": "^0.17.2",
     "zod": "^4.3.5"
   },
   "devDependencies": {

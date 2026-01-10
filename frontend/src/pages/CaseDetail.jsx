@@ -38,6 +38,7 @@ export default function CaseDetail() {
   const [selectedAnalysis, setSelectedAnalysis] = useState(null);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [analysisError, setAnalysisError] = useState(null);
+  const [selectedDocumentId, setSelectedDocumentId] = useState(null);
 
   useEffect(() => {
     loadCaseData();
@@ -139,6 +140,7 @@ export default function CaseDetail() {
 
         // Show analysis results in modal
         setSelectedAnalysis(response);
+        setSelectedDocumentId(docId); // Set document ID for report download
         setShowAnalysisModal(true);
       }
     } catch (error) {
@@ -158,6 +160,50 @@ export default function CaseDetail() {
       import.meta.env.VITE_API_URL?.replace("/api", "") + fileUrl ||
       "http://localhost:5000" + fileUrl;
     window.open(fullUrl, "_blank");
+  };
+
+  const downloadForensicReport = async (documentId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const API_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
+      // Simple download - no case details modal for now
+      const response = await fetch(
+        `${API_URL}/reports/generate/${documentId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            caseTitle: caseData?.title || "N/A",
+            caseNumber: caseData?.case_number || documentId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to generate report");
+      }
+
+      // Download the PDF
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `forensic-report-${documentId}-${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      alert("✅ Forensic report downloaded successfully!");
+    } catch (error) {
+      console.error("Error downloading report:", error);
+      alert("❌ Failed to generate forensic report. Please try again.");
+    }
   };
 
   // Note Handlers
@@ -991,6 +1037,7 @@ export default function CaseDetail() {
                               doc.ai_analysis?.vision_artifact ||
                                 doc.ai_analysis
                             );
+                            setSelectedDocumentId(doc._id);
                             setShowAnalysisModal(true);
                           }}
                           className="btn btn-success btn-sm"
@@ -1052,12 +1099,20 @@ export default function CaseDetail() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h2>🔍 AI Forensic Analysis Report</h2>
-                <button
-                  onClick={() => setShowAnalysisModal(false)}
-                  className="btn btn-secondary btn-sm"
-                >
-                  <i className="bi bi-x-lg"></i> Close
-                </button>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <button
+                    onClick={() => downloadForensicReport(selectedDocumentId)}
+                    className="btn btn-primary btn-sm"
+                  >
+                    <i className="bi bi-download"></i> Download Report
+                  </button>
+                  <button
+                    onClick={() => setShowAnalysisModal(false)}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    <i className="bi bi-x-lg"></i> Close
+                  </button>
+                </div>
               </div>
 
               {/* AI Likelihood Score */}

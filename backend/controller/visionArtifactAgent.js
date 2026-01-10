@@ -2,49 +2,53 @@ import { geminiVisionModel } from "../utils/geminiclient.js";
 import { imageToBase64 } from "../utils/pathto64.js";
 import { buildVisionPrompt } from "../prompts/visionmodel.js";
 import { VisionArtifactSchema } from "../schema/visionartifactschema.js";
-import { analyzeWithHive, extractHiveVerdict } from "../utils/hiveClient.js";
+import {
+  analyzeWithSightEngine,
+  extractSightEngineVerdict,
+} from "../utils/sightengineClient.js";
 
 /**
- * Vision Artifact Agent - Enhanced with Hive AI forensic layer
- * Pipeline: Hive AI → Gemini Vision → Synthesized Analysis
+ * Vision Artifact Agent - Enhanced with SightEngine AI Detection
+ * Pipeline: SightEngine AI → Gemini Vision → Synthesized Analysis
  *
  * @param {string} imagepath - Absolute path to image file
  * @param {Object} metadata - Image EXIF metadata
- * @returns {Promise<Object>} Analysis findings with Hive verdict
+ * @returns {Promise<Object>} Analysis findings with SightEngine verdict
  */
 export const visionArtifactAgent = async (imagepath, metadata = {}) => {
   try {
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("🔬 Starting Enhanced AI Detection Pipeline");
+    console.log(
+      "🔬 Starting Enhanced AI Detection Pipeline (SightEngine + Gemini)"
+    );
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    // STEP 1: Call Hive AI for technical forensic analysis
-    console.log("🔬 Phase 1: Hive AI Forensic Analysis...");
-    const hiveResults = await analyzeWithHive(imagepath);
+    // STEP 1: SightEngine AI Detection (Free Tier - 2000/month)
+    console.log("🔬 Phase 1: SightEngine AI Detection...");
+    const sightEngineResults = await analyzeWithSightEngine(imagepath);
 
-    let hiveVerdict = null;
-    if (hiveResults) {
-      hiveVerdict = extractHiveVerdict(hiveResults);
+    let sightEngineVerdict = null;
+    if (sightEngineResults) {
+      sightEngineVerdict = extractSightEngineVerdict(sightEngineResults);
       console.log(
-        `✅ Hive Verdict: ${hiveVerdict.verdict} (${hiveVerdict.confidence}% confidence)`
+        `✅ SightEngine Verdict: ${sightEngineVerdict.verdict} (${sightEngineVerdict.confidence}% confidence)`
       );
-      console.log(`   - AI Generated: ${hiveVerdict.aiScore}%`);
-      console.log(`   - Real Photo: ${hiveVerdict.realScore}%`);
+      console.log(`   - AI Generated: ${sightEngineVerdict.aiScore}%`);
+      console.log(`   - Real Photo: ${sightEngineVerdict.realScore}%`);
     } else {
       console.log(
-        "⚠️  Hive analysis unavailable - proceeding with Gemini only"
+        "⚠️  SightEngine analysis unavailable - proceeding with Gemini only"
       );
     }
-
     // STEP 2: Convert image to base64 for Gemini
     console.log("🖼️  Phase 2: Preparing image for Gemini...");
     const base64Image = imageToBase64(imagepath);
 
-    // STEP 3: Build enhanced prompt with Hive data and metadata
+    // STEP 3: Build enhanced prompt with SightEngine data and metadata
     console.log("📝 Phase 3: Building comprehensive prompt...");
-    const completePrompt = buildVisionPrompt(hiveResults, metadata);
+    const completePrompt = buildVisionPrompt(sightEngineResults, metadata);
 
-    // STEP 4: Call Gemini Vision API with Hive context
+    // STEP 4: Call Gemini Vision API with SightEngine context
     console.log("🤖 Phase 4: Gemini synthesis and visual analysis...");
     const result = await geminiVisionModel.generateContent([
       {
@@ -98,10 +102,10 @@ export const visionArtifactAgent = async (imagepath, metadata = {}) => {
     );
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    // STEP 5: Return synthesized results with Hive data
+    // STEP 5: Return synthesized results with SightEngine data
     return {
       ...parsed.data,
-      hive_analysis: hiveVerdict,
+      sightengine_analysis: sightEngineVerdict,
     };
   } catch (error) {
     console.error("❌ Vision Artifact Agent Error:", error.message);
