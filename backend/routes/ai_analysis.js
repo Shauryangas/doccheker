@@ -2,7 +2,7 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import { visionArtifactAgent } from "../controller/visionArtifactAgent.js";
-import { calculateVisionScore } from "../lib/calculatescore.js";
+import { calculateVisionScore } from "../utils/calculatescore.js";
 import Document from "../models/Document.js";
 import { protect } from "../middleware/auth.js";
 
@@ -50,19 +50,34 @@ router.post("/analyze/:documentId", async (req, res) => {
     console.log(`✓ Processing image: ${document.file_name}`);
     console.log(`✓ File path: ${document.file_path}`);
 
-    // Call Vision Artifact Agent
-    const data = await visionArtifactAgent(document.file_path);
+    // Log metadata status
+    const hasMetadata =
+      document.metadata && Object.keys(document.metadata).length > 0;
+    console.log(
+      `📊 Metadata status: ${
+        hasMetadata
+          ? `${Object.keys(document.metadata).length} fields found`
+          : "No metadata present"
+      }`
+    );
+
+    // Call Vision Artifact Agent with metadata
+    const data = await visionArtifactAgent(
+      document.file_path,
+      document.metadata
+    );
 
     // Calculate AI likelihood score
     const aiLikelihood = calculateVisionScore(data.findings);
 
-    // Update document with analysis results
+    // Update document with analysis results including Hive verdict
     document.analysis_status = "analyzed";
     document.ai_analysis = {
       vision_artifact: {
         findings: data.findings,
         ai_likelihood: aiLikelihood,
         analyzed_at: new Date(),
+        hive_verdict: data.hive_analysis || null, // Store Hive scores and verdict
       },
     };
     await document.save();
@@ -70,6 +85,11 @@ router.post("/analyze/:documentId", async (req, res) => {
     console.log(`✅ Analysis complete for ${document.file_name}`);
     console.log(`📊 AI Likelihood: ${aiLikelihood}`);
     console.log(`🔍 Findings: ${data.findings.length} issues detected`);
+    if (data.hive_analysis) {
+      console.log(
+        `🔬 Hive Conclusion: ${data.hive_analysis.verdict} (${data.hive_analysis.confidence}%)`
+      );
+    }
 
     res.json({
       success: true,
@@ -77,6 +97,7 @@ router.post("/analyze/:documentId", async (req, res) => {
       document_id: documentId,
       findings: data.findings,
       ai_likelihood: aiLikelihood,
+      hive_verdict: data.hive_analysis, // Include Hive data in response
       analyzed_at: new Date(),
     });
   } catch (err) {

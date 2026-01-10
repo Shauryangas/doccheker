@@ -9,14 +9,13 @@ import notesRoutes from "./routes/notes.js";
 import speechesRoutes from "./routes/speeches.js";
 import aiAnalysisRoutes from "./routes/ai_analysis.js";
 
-// Load environment variables
-dotenv.config();
+// Environment variables are preloaded via -r dotenv/config in package.json
 
 // Initialize Express app
 const app = express();
 
 // Middleware
-console.log("this isfrontend",process.env.GEMINI_API_KEY);
+
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -92,9 +91,8 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const PORT = process.env.PORT ;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
 });
-

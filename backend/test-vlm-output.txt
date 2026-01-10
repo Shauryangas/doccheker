@@ -1,0 +1,30 @@
+﻿[dotenv@17.2.3] injecting env (8) from .env -- tip: ≡ƒôí add observability to secrets: https://dotenvx.com/ops
+≡ƒº¬ Testing Hive Vision Language Model API
+
+ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+1. Environment Variables:
+   HIVE_API_KEY: Γ£ô Set (HEyiwJLB...)
+
+2. Testing Hive VLM API:
+   Endpoint: https://api.thehive.ai/v3/chat/completions
+   Model: hive/vision-language-model
+   Test Image: 1767272851216-678314105.png
+
+3. Calling Hive VLM for AI Detection:
+
+   Γ¥î FAILED
+
+   Error: Request failed with status code 404
+   Status: 404
+   Response: "Not Found"
+
+ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+Γ¥î Hive VLM test failed!
+
+Possible issues:
+1. Invalid API key - verify at https://thehive.ai
+2. Free tier credits exhausted
+3. VLM not available on your plan
+4. Need to generate V3 API key (not V2)
+
+≡ƒÆí Recommendation: Check your Hive dashboard for API key type

@@ -1,29 +1,61 @@
-import { geminiVisionModel } from "../lib/geminiclient.js";
-import { imageToBase64 } from "../lib/pathto64.js";
-import { visionArtifactPrompt } from "../prompts/visionmodel.js";
+import { geminiVisionModel } from "../utils/geminiclient.js";
+import { imageToBase64 } from "../utils/pathto64.js";
+import { buildVisionPrompt } from "../prompts/visionmodel.js";
 import { VisionArtifactSchema } from "../schema/visionartifactschema.js";
+import { analyzeWithHive, extractHiveVerdict } from "../utils/hiveClient.js";
 
-export const visionArtifactAgent = async (imagepath) => {
+/**
+ * Vision Artifact Agent - Enhanced with Hive AI forensic layer
+ * Pipeline: Hive AI → Gemini Vision → Synthesized Analysis
+ *
+ * @param {string} imagepath - Absolute path to image file
+ * @param {Object} metadata - Image EXIF metadata
+ * @returns {Promise<Object>} Analysis findings with Hive verdict
+ */
+export const visionArtifactAgent = async (imagepath, metadata = {}) => {
   try {
-    // Convert image to base64
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("🔬 Starting Enhanced AI Detection Pipeline");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    // STEP 1: Call Hive AI for technical forensic analysis
+    console.log("🔬 Phase 1: Hive AI Forensic Analysis...");
+    const hiveResults = await analyzeWithHive(imagepath);
+
+    let hiveVerdict = null;
+    if (hiveResults) {
+      hiveVerdict = extractHiveVerdict(hiveResults);
+      console.log(
+        `✅ Hive Verdict: ${hiveVerdict.verdict} (${hiveVerdict.confidence}% confidence)`
+      );
+      console.log(`   - AI Generated: ${hiveVerdict.aiScore}%`);
+      console.log(`   - Real Photo: ${hiveVerdict.realScore}%`);
+    } else {
+      console.log(
+        "⚠️  Hive analysis unavailable - proceeding with Gemini only"
+      );
+    }
+
+    // STEP 2: Convert image to base64 for Gemini
+    console.log("🖼️  Phase 2: Preparing image for Gemini...");
     const base64Image = imageToBase64(imagepath);
 
-    // Call Gemini Vision API with timeout handling
-    const result = await Promise.race([
-      geminiVisionModel.generateContent([
-        {
-          text: visionArtifactPrompt,
+    // STEP 3: Build enhanced prompt with Hive data and metadata
+    console.log("📝 Phase 3: Building comprehensive prompt...");
+    const completePrompt = buildVisionPrompt(hiveResults, metadata);
+
+    // STEP 4: Call Gemini Vision API with Hive context
+    console.log("🤖 Phase 4: Gemini synthesis and visual analysis...");
+    const result = await geminiVisionModel.generateContent([
+      {
+        text: completePrompt,
+      },
+      {
+        inlineData: {
+          mimeType: "image/jpeg",
+          data: base64Image,
         },
-        {
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64Image,
-          },
-        },
-      ]),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Gemini API timeout (30s)")), 30000)
-      ),
+      },
     ]);
 
     const responseText = result.response.text();
@@ -61,7 +93,16 @@ export const visionArtifactAgent = async (imagepath) => {
       );
     }
 
-    return parsed.data;
+    console.log(
+      `✅ Analysis complete! Found ${parsed.data.findings.length} findings`
+    );
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    // STEP 5: Return synthesized results with Hive data
+    return {
+      ...parsed.data,
+      hive_analysis: hiveVerdict,
+    };
   } catch (error) {
     console.error("❌ Vision Artifact Agent Error:", error.message);
     throw error;

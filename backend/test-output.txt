@@ -1,0 +1,49 @@
+﻿[dotenv@17.2.3] injecting env (9) from .env -- tip: ΓÜÖ∩╕Å  specify custom .env file path with { path: '/custom/path/.env' }
+≡ƒº¬ Testing Hive AI API Configuration
+
+ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+1. Environment Variables:
+   HIVE_API_KEY: Γ£ô Set (HSQL3Ya8...)
+   HIVE_API_SECRET: Γ£ô Set
+
+2. Testing API Connection:
+   Endpoint: https://api.thehive.ai/api/v2/task/sync
+   Test Image: 1767272851216-678314105.png
+
+3. Testing Method 1: api_token parameter:
+   Γ¥î FAILED
+   Error: Request failed with status code 400
+   Status: 400
+   Response: {
+  "return_code": 400,
+  "message": "Invalid Auth Method. 'Token' authentication required."
+}
+
+3. Testing Method 2: Authorization Token header:
+   Γ¥î FAILED
+   Error: Request failed with status code 403
+   Status: 403
+   Response: {
+  "return_code": 403,
+  "message": "Invalid Auth Token."
+}
+
+3. Testing Method 3: Authorization Bearer:
+   Γ¥î FAILED
+   Error: Request failed with status code 400
+   Status: 400
+   Response: {
+  "return_code": 400,
+  "message": "Invalid Auth Method. 'Token' authentication required."
+}
+
+ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+Γ¥î All authentication methods failed!
+
+Possible issues:
+1. Invalid API key - verify at https://thehive.ai
+2. API key needs activation or permissions
+3. Account billing/subscription issue
+4. Different API endpoint required
+
+≡ƒÆí Recommendation: Contact Hive AI support or check your dashboard

@@ -40,7 +40,7 @@ export default function Navbar() {
                 color: "var(--text-primary)",
               }}
             >
-              LegalVault
+              Sakshya AI
             </h2>
             <p
               style={{

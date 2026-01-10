@@ -25,7 +25,6 @@ export default function Landing() {
 
   return (
     <div style={{ background: "var(--bg-primary)" }}>
-      {/* Navigation */}
       <nav
         className="glass"
         style={{
@@ -53,7 +52,7 @@ export default function Landing() {
                 color: "var(--text-primary)",
               }}
             >
-              LegalVault
+              Sakshya AI
             </span>
           </div>
           <div className="flex items-center gap-md">
@@ -569,7 +568,7 @@ export default function Landing() {
                 color: "white",
               }}
             >
-              Join thousands of legal professionals using LegalVault
+              Join thousands of legal professionals using Sakshya AI
             </p>
             <div
               className="flex gap-md justify-center"
@@ -632,7 +631,7 @@ export default function Landing() {
                     color: "var(--text-primary)",
                   }}
                 >
-                  LegalVault
+                  Sakshya AI
                 </span>
               </div>
               <p
@@ -808,7 +807,7 @@ export default function Landing() {
                 margin: 0,
               }}
             >
-              © 2025 LegalVault. All rights reserved.
+              © 2025 Sakshya AI. All rights reserved.
             </p>
             <div className="flex gap-md">
               <a href="#" style={{ color: "var(--text-tertiary)" }}>

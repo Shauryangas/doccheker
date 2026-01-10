@@ -170,7 +170,7 @@ export default function CreateCaseModal({ isOpen, onClose, onCaseCreated }) {
                 type="text"
                 name="clientContact"
                 className="form-input"
-                placeholder="+1 234 567 8900"
+                placeholder="+91 8080418666"
                 value={formData.clientContact}
                 onChange={handleChange}
               />

@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Debug: Verify API key is loaded (showing only first/last chars for security)
-const apiKey ="AIzaSyCIXdK_52m4z0enAKWEKUzc2Cf9fSA6N78";
+const apiKey =process.env.GEMINI_API_KEY;
 if (apiKey) {
   console.log(
     `✓ GEMINI_API_KEY loaded: ${apiKey.substring(0, 8)}...${apiKey.substring(
